@@ -11,6 +11,9 @@
 <form method="POST" action="?/oauth">
   <button style="margin-top: 12px;" name="provider" value="github">Login with GitHub</button>
 </form>
+<form method="POST" action="?/oauth">
+  <button style="margin-top: 12px;" name="provider" value="azure">Login with Azure</button>
+</form>
 <form method="POST" action="?/magic">
   <input name="email" placeholder="email" type="email">
   <button style="margin-top: 12px;">Login with magic link</button>

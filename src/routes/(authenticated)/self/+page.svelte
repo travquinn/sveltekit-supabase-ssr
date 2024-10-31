@@ -1,9 +1,12 @@
 <script lang="ts">
-  export let data
-  export let form
+  import { run } from 'svelte/legacy';
 
-  let { session } = data
-  $: ({ session } = data)
+  let { data, form } = $props();
+
+  let { session } = $state(data)
+  run(() => {
+    ({ session } = data)
+  });
 
   const provider = session?.user.app_metadata.provider
 </script>

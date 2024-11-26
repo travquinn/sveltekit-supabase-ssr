@@ -63,10 +63,12 @@
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
-					<DropdownMenu.Item>
-						<BadgeCheck />
-						Account
-					</DropdownMenu.Item>
+					<a href="/account">
+						<DropdownMenu.Item>
+							<BadgeCheck />
+							Account
+						</DropdownMenu.Item>
+					</a>
 					<DropdownMenu.Item>
 						<CreditCard />
 						Billing

@@ -1,4 +1,6 @@
 <script lang="ts">
+  	import { page } from "$app/stores";
+
 	let { children } = $props();
 
 	import AppSidebar from "$lib/components/app-sidebar.svelte";
@@ -19,23 +21,24 @@
 				<Breadcrumb.Root>
 					<Breadcrumb.List>
 						<Breadcrumb.Item class="hidden md:block">
-							<Breadcrumb.Link href="#">Building Your Application</Breadcrumb.Link>
+							<Breadcrumb.Link href="/">Home</Breadcrumb.Link>
 						</Breadcrumb.Item>
 						<Breadcrumb.Separator class="hidden md:block" />
 						<Breadcrumb.Item>
-							<Breadcrumb.Page>Data Fetching</Breadcrumb.Page>
+							<Breadcrumb.Page>{$page.url.pathname}</Breadcrumb.Page>
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
 				</Breadcrumb.Root>
 			</div>
 		</header>
-		<div class="flex flex-1 flex-col gap-4 p-4 pt-0">
+		<!-- <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
 			<div class="grid auto-rows-min gap-4 md:grid-cols-3">
 				<div class="bg-muted/50 aspect-video rounded-xl"></div>
 				<div class="bg-muted/50 aspect-video rounded-xl"></div>
 				<div class="bg-muted/50 aspect-video rounded-xl"></div>
 			</div>
 			<div class="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min"></div>
-		</div>
+		</div> -->
+		{@render children?.()}
 	</Sidebar.Inset>
 </Sidebar.Provider>

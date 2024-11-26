@@ -14,11 +14,11 @@
       <Card.Description>Enter your email below to login to your account</Card.Description>
     </Card.Header>
     <Card.Content>
-      <div class="grid gap-4">
-        <form method="POST" action="?/signin_email">
+      <div class="grid gap-2">
+        <form method="POST" action="?/signin_email" class="grid gap-2">
           <div class="grid gap-2">
             <Label for="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
+            <Input name="email" id="email" type="email" placeholder="m@example.com" value={form?.data?.email ?? ""} required />
           </div>
           <div class="grid gap-2">
             <!-- <div class="flex items-center">
@@ -31,23 +31,38 @@
                 <button style="margin-top: 12px;">Reset Your Password</button>
                 </form>
             </div> -->
-            <Input id="password" type="password" required />
+            <Input name="password" id="password" type="password" required />
           </div>
           <Button type="submit" class="w-full">Login</Button>
         </form>
         <!-- oauth providers -->
-        <form method="POST" action="?/oauth">
-          <Button type="submit" variant="outline" class="w-full" name="provider" value="github">Login with Github</Button>
-        </form>
-        <form method="POST" action="?/oauth">
-          <Button type="submit" variant="outline" class="w-full" name="provider" value="gitlab">Login with Gitlab</Button>
-        </form>
-        <form method="POST" action="?/oauth">
-          <Button type="submit" variant="outline" class="w-full" name="provider" value="google">Login with Google</Button>
-        </form>
-        <form method="POST" action="?/oauth">
-          <Button type="submit" variant="outline" class="w-full" name="provider" value="azure">Login with Microsoft</Button>
-        </form>
+        <div class="relative space-y-4">
+          <div class="relative flex justify-center text-xs uppercase pt-2">
+            <span class="bg-background text-muted-foreground px-2">Login with</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <form method="POST" action="?/oauth" class="contents">
+              <Button type="submit" variant="outline" class="w-full" name="provider" value="github">
+                Github
+              </Button>
+            </form>
+            <form method="POST" action="?/oauth" class="contents">
+              <Button type="submit" variant="outline" class="w-full" name="provider" value="gitlab">
+                Gitlab
+              </Button>
+            </form>
+            <form method="POST" action="?/oauth" class="contents">
+              <Button type="submit" variant="outline" class="w-full" name="provider" value="google">
+                Google
+              </Button>
+            </form>
+            <form method="POST" action="?/oauth" class="contents">
+              <Button type="submit" variant="outline" class="w-full" name="provider" value="azure">
+                Microsoft
+              </Button>
+            </form>
+          </div>
+        </div>
       </div>
       <div class="mt-4 text-center text-sm">
         Don't have an account?

@@ -1,6 +1,11 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
+  import { Button } from "$lib/components/ui/button/index.js";
+  import * as Card from "$lib/components/ui/card/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
+
   let { data, form } = $props();
 
   let { session } = $state(data)
@@ -12,9 +17,11 @@
 </script>
 
 {#if session}
-  <h2>Welcome to /self!</h2>
+  <!-- <h2>Welcome to /self!</h2> -->
   <h3>User Information:</h3>
   <p style="margin-left: 10px;">ID: {session.user.id}</p>
+  <Label for="id">Email</Label>
+  <Input id="id" type="id" placeholder="m@example.com" value={session.user.id} required />
   <p style="margin-left: 10px;">Email: {session.user.email || "not set"}</p>
   <p style="margin-left: 10px;">Phone Number: {session.user.phone || "not set"}</p>
   <p style="margin-left: 10px;">Nickname: {session.user.user_metadata.nickname || "not set"}</p>

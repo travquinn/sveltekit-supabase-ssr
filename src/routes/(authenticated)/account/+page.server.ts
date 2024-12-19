@@ -34,7 +34,7 @@ export const actions = {
       })
     }
 
-    const { error } = await supabase.auth.updateUser({ email, password }, { emailRedirectTo: 'http://localhost:5173/self'})
+    const { error } = await supabase.auth.updateUser({ email, password }, { emailRedirectTo: 'http://localhost:5173/account'})
 
     if (error)
       return Fail(error)

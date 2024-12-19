@@ -29,6 +29,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     if (!session) return null
 
+    // Verify with getUser for extra security
+    const { data: { user } } = await event.locals.supabase.auth.getUser()
+    if (!user) return null
+
     /**
      * Ensures the session is fully validated. See README Security section for details.
      * 

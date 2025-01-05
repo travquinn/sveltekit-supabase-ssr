@@ -1,173 +1,82 @@
-import type { Provider } from "@supabase/supabase-js"
-import { redirect } from "@sveltejs/kit"
-import { PUBLIC_SUPABASE_URL } from '$env/static/public'
-import { SUPABASE_SERVICE_ROLE_KEY } from '$env/static/private'
-import { createClient } from '@supabase/supabase-js'
-import { Fail } from "$lib/utils.js"
+// +page.server.ts
+import { superValidate } from 'sveltekit-superforms/server';
+import { userSchema } from '$lib/server/db/schema';
+import { db } from '$lib/server/db';
+import { and, eq } from 'drizzle-orm';
+import { users } from '$lib/server/db/schema';
+import type { Actions } from './$types';
+
+// Create form validation schemas using drizzle-zod
+const emailFormSchema = userSchema.pick({ email: true }).extend({
+  password: z.string().min(8)
+});
+
+const nicknameFormSchema = userSchema.pick({ nickname: true });
+const phoneFormSchema = userSchema.pick({ phone: true });
 
 export const load = async ({ locals: { getSession } }) => {
-  /**
-   * Auth validation happens in hooks.server.ts, so there's
-   * no need to check anything here.
-   * 
-   * If you have a one-off situation, or you'd rather be
-   * more explicit, check for a session and redirect.
-   * 
-   * import { redirect } from '@sveltejs/kit' // Would be added in with the `redirect` import above.
-   * if (!session) redirect(307, '/auth') // Would be added after the `const session...` below.
-   */
+  const session = await getSession();
+  
+  return {
+    session,
+    emailForm: await superValidate(emailFormSchema),
+    nicknameForm: await superValidate(nicknameFormSchema),
+    phoneForm: await superValidate(phoneFormSchema)
+  };
+};
 
-  const session = await getSession()
-
-  return { session }
-}
-
-export const actions = {
-  convert_email: async({ request, locals: { supabase } }) => {
-    const formData = await request.formData()
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
-
-    if (!email || !password) {
-      return Fail({
-        message: 'Please provide your email address and a password.'
-      })
-    }
-
-    const { error } = await supabase.auth.updateUser({ email, password }, { emailRedirectTo: 'http://localhost:5173/account'})
-
-    if (error)
-      return Fail(error)
-
-    return { message: 'Please check your email to continue.' }
-  },
-  convert_provider: async({ request, locals: { supabase } }) => {
-    const formData = await request.formData()
-    const provider = formData.get('provider') as Provider
-
-    if (!provider) {
-      return Fail({
-        message: 'Please pass a provider.'
-      })
-    }
-
-    const { data, error } = await supabase.auth.linkIdentity({ provider, options: { redirectTo: 'http:/localhost:5173/self' } })
-
-    if (error)
-      return Fail(error)
-
-    if (data.url) redirect(303, data.url)
-  },
-  delete_nickname: async ({ locals: { supabase } }) => {
-    const { error } = await supabase.auth.updateUser({
-      data: { nickname: null }
-    })
-
-    if (error)
-      return Fail(error, { nickname: '' })
-
-    /* Refresh tokens, so we can display the new nickname. */
-    await supabase.auth.refreshSession()
-  },
-  delete_user: async({ request}) => {
-    const formData = await request.formData()
-    const user = formData.get('user') as string
-
-    if (!user) {
-      return Fail({
-        message: 'Please enter a user id.'
-      })
-    }
-
-    const supabase = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
-    const { error } = await supabase.auth.admin.deleteUser(user)
-    
-    if (error)
-      return Fail(error)
-
-    return { message: 'User deleted.' }
-  },
+export const actions: Actions = {
   update_nickname: async ({ request, locals: { supabase } }) => {
-    const formData = await request.formData()
-    const nickname = formData.get('nickname') as string
-
-    if (!nickname) {
-      return Fail(
-        { message: 'Please enter a nickname.' },
-        { nickname: '' }
-      )
+    const form = await superValidate(request, nicknameFormSchema);
+    
+    if (!form.valid) {
+      return fail(400, { form });
     }
 
-    const { error } = await supabase.auth.updateUser({
-      data: { nickname }
-    })
+    try {
+      await db.transaction(async (tx) => {
+        await tx.update(users)
+          .set({ nickname: form.data.nickname })
+          .where(eq(users.id, session.user.id));
+        
+        await supabase.auth.updateUser({
+          data: { nickname: form.data.nickname }
+        });
+      });
 
-    if (error)
-      return Fail(error, { nickname })
-
-    /* Refresh tokens, so we can display the new nickname. */
-    await supabase.auth.refreshSession()
-  },
-  update_password: async({ request, locals: { supabase } }) => {
-    const formData = await request.formData()
-    const password = formData.get('password') as string
-
-    if (!password) {
-      return Fail({
-        message: 'Please enter a new password'
-      })
+      await supabase.auth.refreshSession();
+      return { form };
+    } catch (error) {
+      return fail(500, { form, error: 'Failed to update nickname' });
     }
-
-    const { error } = await supabase.auth.updateUser({
-      password
-    })
-
-    if (error)
-      return Fail(error)
-
-    return { message: 'Password updated!' }
   },
+
+  // Similar pattern for other actions
   update_phone: async ({ request, locals: { supabase } }) => {
-    const formData = await request.formData()
-    const phone = formData.get('phone') as string
-
-    if (!phone) {
-      return Fail(
-        { message: 'Please enter a phone number.' }
-      )
+    const form = await superValidate(request, phoneFormSchema);
+    
+    if (!form.valid) {
+      return fail(400, { form });
     }
 
-    /* Sends an OTP to phone number. */
-    const { error } = await supabase.auth.updateUser({
-      phone
-    })
+    try {
+      await db.transaction(async (tx) => {
+        await tx.update(users)
+          .set({ phone: form.data.phone })
+          .where(eq(users.id, session.user.id));
+          
+        await supabase.auth.updateUser({
+          phone: form.data.phone
+        });
+      });
 
-    if (error)
-      return Fail({ message: error.message })
-
-    return { message: 'Please check your phone for the OTP code and enter it below.' , verify: true, phone }
-  },
-  verify_otp: async ({ request, locals: { supabase } }) => {
-    const formData = await request.formData()
-    const otp = formData.get('otp') as string
-    const phone = formData.get('phone') as string
-
-    if (!otp) {
-      return Fail(
-        { message: 'Please enter an OTP.', verify: true, phone }
-      )
+      return {
+        form,
+        verify: true,
+        phone: form.data.phone
+      };
+    } catch (error) {
+      return fail(500, { form, error: 'Failed to update phone' });
     }
-
-    const { error } = await supabase.auth.verifyOtp({
-      phone,
-      type: 'phone_change',
-      token: otp
-    })
-
-    if (error)
-      return Fail({ message: error.message, verify: true, phone })
-
-    return { message: 'Your phone number has been changed.' , verify: false }
   }
-}
+};

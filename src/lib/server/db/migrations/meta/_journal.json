@@ -8,6 +8,13 @@
       "when": 1736057350286,
       "tag": "0000_wide_valeria_richards",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1736062556463,
+      "tag": "0001_outstanding_wolf_cub",
+      "breakpoints": true
     }
   ]
 }
